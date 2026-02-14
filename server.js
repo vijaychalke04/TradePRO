@@ -1,268 +1,193 @@
-// ============================================
-// TRADE GENIE - FINAL ROBUST ENGINE
-// ANGEL ONE LOGIN FIXED VERSION
-// ============================================
+const express=require("express");
+const cors=require("cors");
+const https=require("https");
 
-const express = require("express");
-const cors = require("cors");
-const https = require("https");
-
-const app = express();
+const app=express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+const PORT=process.env.PORT||3000;
 
-// ============================================
-// CONFIG
-// ============================================
-const CONFIG = {
-  apiKey: process.env.ANGEL_API_KEY || "JkFNQiMO",
-  clientId: process.env.ANGEL_CLIENT_ID || "V58776779",
-  baseURL: "apiconnect.angelone.in"
+const CONFIG={
+ apiKey:process.env.ANGEL_API_KEY||"JkFNQiMO",
+ clientId:process.env.ANGEL_CLIENT_ID||"V58776779",
+ baseURL:"apiconnect.angelone.in"
 };
 
-// ============================================
-// INSTRUMENT LIST
-// ============================================
+const NSE_INDICES=["99926000","99926009","99926037","99926017"];
+const COMMODITIES=["257681","254721","258847","259304"];
+const STOCKS=["3045","11536","1333","1594","4963","1660","3787"];
 
-const NSE_INDICES = ["99926000","99926009","99926037","99926017"];
-const COMMODITIES = ["257681","254721","258847","259304"];
-const STOCKS = ["3045","11536","1333","1594","4963","1660","3787"];
+let CACHE={indices:[],commodities:[],stocks:[]};
 
-// ============================================
-// REQUEST HELPER
-// ============================================
-
-function angelRequest(path, method, headers, data){
-
-  return new Promise((resolve,reject)=>{
-
-    const req = https.request({
-      hostname: CONFIG.baseURL,
-      path,
-      method,
-      headers
-    }, res=>{
-
-      let body="";
-
-      res.on("data", chunk => body += chunk);
-
-      res.on("end", ()=>{
-        try{
-          resolve(JSON.parse(body));
-        }catch(e){
-          reject(e);
-        }
-      });
-
-    });
-
-    req.on("error", reject);
-
-    if(data) req.write(JSON.stringify(data));
-    req.end();
+function requestAngel(path,method,headers,data){
+ return new Promise((resolve,reject)=>{
+  const req=https.request({hostname:CONFIG.baseURL,path,method,headers},res=>{
+   let body="";
+   res.on("data",c=>body+=c);
+   res.on("end",()=>resolve(JSON.parse(body||"{}")));
   });
+  if(data)req.write(JSON.stringify(data));
+  req.on("error",reject);
+  req.end();
+ });
 }
 
-function quoteHeaders(token){
-  return {
-    Authorization:`Bearer ${token}`,
+function headers(token){
+ return{
+  Authorization:`Bearer ${token}`,
+  "X-PrivateKey":CONFIG.apiKey,
+  "Content-Type":"application/json",
+  "X-SourceID":"WEB",
+  "X-UserType":"USER",
+  "X-ClientLocalIP":"127.0.0.1",
+  "X-ClientPublicIP":"127.0.0.1",
+  "X-MACAddress":"00:00:00:00:00:00"
+ };
+}
+
+function build(item,exchange){
+ const ltp=parseFloat(item.ltp||0);
+ const close=parseFloat(item.close||ltp);
+ const high=parseFloat(item.high||ltp);
+ const low=parseFloat(item.low||ltp);
+
+ return{
+  name:item.tradingSymbol||"Unknown",
+  token:item.symbolToken,
+  exchange,
+  ltp,open:parseFloat(item.open||ltp),
+  high,low,close,
+  range:high-low,
+  changePct:close?((ltp-close)/close)*100:0
+ };
+}
+
+function alpha(i){
+ if(i.changePct>0.6)return"BUY";
+ if(i.changePct<-0.6)return"SELL";
+ return"HOLD";
+}
+
+function beta(i){
+ if(i.range===0)return false;
+ return Math.abs(i.changePct)>0.3;
+}
+
+function risk(i,commodity=false){
+ let r=Math.abs(i.changePct)*8;
+ if(commodity)r+=12;
+ return Math.min(100,Math.round(r));
+}
+
+function optionSuggestion(i,signal){
+ let strike=Math.round(i.ltp/100)*100;
+
+ if(signal==="BUY"){
+   return `${i.name.split("-")[0]} ${strike} CE`;
+ }
+ if(signal==="SELL"){
+   return `${i.name.split("-")[0]} ${strike} PE`;
+ }
+ return "-";
+}
+
+function engine(i,commodity=false){
+
+ const a=alpha(i);
+ const b=beta(i);
+ const r=risk(i,commodity);
+ const mode=r<40?"MODE1":"MODE2";
+
+ const signal=(a==="HOLD"||!b)?"HOLD":a;
+
+ return{
+  signal,
+  mode,
+  risk:r,
+  warning:r>=40?"⚠️ Higher Risk Trade":"",
+  trade:optionSuggestion(i,signal),
+  stopLoss:"30%",
+  target:"60%"
+ };
+}
+
+async function fetchQuotes(token,exchange,list){
+ const res=await requestAngel(
+  "/rest/secure/angelbroking/market/v1/quote/",
+  "POST",
+  headers(token),
+  {mode:"FULL",exchangeTokens:{[exchange]:list}}
+ );
+ return res?.data?.fetched||[];
+}
+
+app.post("/api/angel",async(req,res)=>{
+
+ const{action,mpin,totp,token}=req.body;
+
+ if(action==="login"){
+  const login=await requestAngel(
+   "/rest/auth/angelbroking/user/v1/loginByPassword",
+   "POST",
+   {
     "Content-Type":"application/json",
-    "X-PrivateKey": CONFIG.apiKey,
-    "X-SourceID":"WEB",
-    "X-UserType":"USER",
+    "X-PrivateKey":CONFIG.apiKey,
     "X-ClientLocalIP":"127.0.0.1",
     "X-ClientPublicIP":"127.0.0.1",
-    "X-MACAddress":"00:00:00:00:00:00"
-  };
-}
-
-// ============================================
-// MARKET DATA BUILDER
-// ============================================
-
-function buildData(item, exchange){
-
-  const ltp = parseFloat(item.ltp || 0);
-  const close = parseFloat(item.close || ltp);
-  const high = parseFloat(item.high || ltp);
-  const low = parseFloat(item.low || ltp);
-
-  return {
-    name: item.tradingSymbol || "Unknown",
-    token: item.symbolToken,
-    exchange,
-    ltp,
-    open: parseFloat(item.open || ltp),
-    high,
-    low,
-    close,
-    range: high-low,
-    changePct: close ? ((ltp-close)/close)*100 : 0
-  };
-}
-
-// ============================================
-// SIGNAL ENGINE
-// ============================================
-
-function alphaEngine(i){
-  if(i.changePct > 0.6) return "BUY";
-  if(i.changePct < -0.6) return "SELL";
-  return "HOLD";
-}
-
-function betaEngine(i){
-  if(i.range === 0) return false;
-  const vol = (i.range / i.ltp) * 100;
-  return Math.abs(i.changePct) > vol * 0.3;
-}
-
-function riskEngine(i, commodity=false){
-
-  let risk = Math.abs(i.changePct)*8;
-  risk += ((i.range / i.ltp) * 100) * 2;
-
-  if(commodity) risk += 12;
-
-  return Math.min(100, Math.round(risk));
-}
-
-function signalEngine(i, commodity=false){
-
-  const alpha = alphaEngine(i);
-  const beta = betaEngine(i);
-  const risk = riskEngine(i, commodity);
-
-  const mode = risk < 40 ? "MODE1" : "MODE2";
-
-  if(alpha==="HOLD"){
-    return {signal:"HOLD",mode,risk};
-  }
-
-  if(!beta){
-    return {
-      signal:"HOLD",
-      mode,
-      risk,
-      warning:"Structure weak (blocked)"
-    };
-  }
-
-  return {
-    signal:alpha,
-    mode,
-    risk,
-    warning:risk>=40 ? "⚠️ Higher Risk Trade" : ""
-  };
-}
-
-// ============================================
-// FETCH QUOTES
-// ============================================
-
-async function fetchQuotes(token, exchange, tokens){
-
-  const result = await angelRequest(
-    "/rest/secure/angelbroking/market/v1/quote/",
-    "POST",
-    quoteHeaders(token),
-    { mode:"FULL", exchangeTokens:{[exchange]:tokens} }
+    "X-MACAddress":"00:00:00:00:00:00",
+    "X-UserType":"USER",
+    "X-SourceID":"WEB"
+   },
+   {clientcode:CONFIG.clientId,password:mpin,totp}
   );
 
-  return result?.data?.fetched || [];
-}
+  if(login?.status&&login?.data?.jwtToken){
+   return res.json({success:true,token:login.data.jwtToken});
+  }
 
-// ============================================
-// MAIN API
-// ============================================
+  return res.json({success:false,error:"Login failed"});
+ }
 
-app.post("/api/angel", async(req,res)=>{
-
-  const {action, mpin, totp, token} = req.body;
+ if(action==="fetch_all"){
 
   try{
 
-    // ========= LOGIN =========
-    if(action==="login"){
+   const [i,c,s]=await Promise.all([
+    fetchQuotes(token,"NSE",NSE_INDICES),
+    fetchQuotes(token,"MCX",COMMODITIES),
+    fetchQuotes(token,"NSE",STOCKS)
+   ]);
 
-      const loginResult = await angelRequest(
-        "/rest/auth/angelbroking/user/v1/loginByPassword",
-        "POST",
-        {
-          "Content-Type":"application/json",
-          "X-PrivateKey": CONFIG.apiKey,
-          "X-ClientLocalIP":"127.0.0.1",
-          "X-ClientPublicIP":"127.0.0.1",
-          "X-MACAddress":"00:00:00:00:00:00",
-          "X-UserType":"USER",
-          "X-SourceID":"WEB"
-        },
-        {
-          clientcode: CONFIG.clientId,
-          password: mpin,
-          totp: totp
-        }
-      );
+   if(i.length){
+    CACHE.indices=i.map(x=>{
+      const d=build(x,"NSE");
+      return {...d,engine:engine(d,false)};
+    });
+   }
 
-      console.log("LOGIN RESPONSE:", loginResult);
+   if(c.length){
+    CACHE.commodities=c.map(x=>{
+      const d=build(x,"MCX");
+      return {...d,engine:engine(d,true)};
+    });
+   }
 
-      if(loginResult?.status && loginResult?.data?.jwtToken){
-        return res.json({
-          success:true,
-          token: loginResult.data.jwtToken
-        });
-      }
+   if(s.length){
+    CACHE.stocks=s.map(x=>{
+      const d=build(x,"NSE");
+      return {...d,engine:engine(d,false)};
+    });
+   }
 
-      return res.json({
-        success:false,
-        error: loginResult?.message || "Login failed"
-      });
-    }
-
-    // ========= FETCH DATA =========
-    if(action==="fetch_all"){
-
-      const [indRaw, comRaw, stkRaw] = await Promise.all([
-        fetchQuotes(token,"NSE",NSE_INDICES),
-        fetchQuotes(token,"MCX",COMMODITIES),
-        fetchQuotes(token,"NSE",STOCKS)
-      ]);
-
-      const indices = indRaw.map(x=>{
-        const d = buildData(x,"NSE");
-        return {...d, engine:signalEngine(d,false)};
-      });
-
-      const commodities = comRaw.map(x=>{
-        const d = buildData(x,"MCX");
-        return {...d, engine:signalEngine(d,true)};
-      });
-
-      const stocks = stkRaw.map(x=>{
-        const d = buildData(x,"NSE");
-        return {...d, engine:signalEngine(d,false)};
-      });
-
-      return res.json({
-        success:true,
-        data:{indices,commodities,stocks}
-      });
-    }
-
-    res.json({success:false,error:"Invalid action"});
+   return res.json({success:true,data:CACHE});
 
   }catch(e){
-    console.error("SERVER ERROR:",e);
-    res.status(500).json({success:false,error:e.message});
+    return res.json({success:true,data:CACHE});
   }
+ }
 
+ res.json({success:false});
 });
 
-// ============================================
-
-app.listen(PORT,()=>{
-  console.log("🚀 FINAL ENGINE RUNNING ON PORT",PORT);
-});
+app.listen(PORT,()=>console.log("FINAL ROBUST ENGINE RUNNING",PORT));
