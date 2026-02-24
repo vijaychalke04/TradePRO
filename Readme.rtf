@@ -1,0 +1,167 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2868
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Bold;\f1\froman\fcharset0 Times-Roman;\f2\fmodern\fcharset0 Courier;
+\f3\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue0;\red16\green19\blue24;
+\red109\green109\blue109;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c0\c0\c0\c84706;\cssrgb\c7843\c9412\c12157;
+\cssrgb\c50196\c50196\c50196;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid101\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{circle\}}{\leveltext\leveltemplateid102\'01\uc0\u9702 ;}{\levelnumbers;}\fi-360\li1440\lin1440 }{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid201\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid3}
+{\list\listtemplateid4\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid301\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid4}
+{\list\listtemplateid5\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat3\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid401\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid5}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}{\listoverride\listid4\listoverridecount0\ls4}{\listoverride\listid5\listoverridecount0\ls5}}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \uc0\u55357 \u56596  Notifications FIXED \'97 3-Layer System\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\fs24 \cf0 The problem:
+\f1\b0  
+\f2\fs26 sendTg()
+\f1\fs24  was only called once \'97 on login. Alerts were being computed correctly but 
+\f0\b never pushed anywhere
+\f1\b0 .\
+Now you have 3 notification layers:\
+
+\f0\b Layer 1 \'97 Telegram
+\f1\b0  (works even when browser is closed) When any alert reaches READY status, the server now sends a detailed Telegram message:\
+\pard\pardeftab720\qc\partightenfactor0
+
+\f3\fs22 \cf3 \strokec3 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs24 \cf4 \strokec4 \uc0\u55357 \u57000  TRADE ALERT \'97 RELIANCE\
+Breakout Detected\
+Buy CE\
+Entry: \uc0\u8377 1,430 | Target: \u8377 1,465 | SL: \u8377 1,410\
+Nearest monthly, ATM CE\
+Confidence: High\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 \strokec2 Each alert has a 10-minute cooldown to prevent spam.\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b \cf0 Layer 2 \'97 Browser Push Notifications
+\f1\b0  (works even if you're on a different tab) On first login, it asks for notification permission. When alerts fire, you get native OS notifications with the \uc0\u55358 \u56798  icon.\
+
+\f0\b Layer 3 \'97 In-App Toast
+\f1\b0  (green slide-in from top-right) Every READY alert shows a toast notification that auto-dismisses after 8 seconds. This works via both SSE push AND poll-based backup \'97 so you get notified even if SSE connection drops.\
+\pard\pardeftab720\partightenfactor0
+\cf5 \strokec5 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 \uc0\u55357 \u56753 \u65039  Right-Click \u8594  Add to Watchlist\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Right-click on 
+\f0\b any
+\f1\b0  stock card, trade suggestion, alert card, or index card. A context menu appears with:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls1\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \uc0\u11088  
+\f0\b Add to Watchlist
+\f1\b0  (or \uc0\u10060  Remove if already in watchlist)\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \uc0\u55357 \u56522  
+\f0\b Backtest This Stock
+\f1\b0  \'97 jumps to backtesting, selects the stock, runs EMA backtest\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \uc0\u55357 \u56517  
+\f0\b 52-Week Analysis
+\f1\b0  \'97 same jump, runs 52W analysis\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \uc0\u55358 \u56814  
+\f0\b Greeks Calculator
+\f1\b0  \'97 auto-fills spot price from that stock's LTP\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 Works on Dashboard, Trades tab, Stocks tab, Commodities tab, Discover tab, and Alert cards.\
+\pard\pardeftab720\partightenfactor0
+\cf5 \strokec5 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 \uc0\u55358 \u56814  Greeks Calculator \'97 Full UI\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Added below the backtest section with:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls2\ilvl0
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Inputs:
+\f1\b0  Spot price, Strike price, Days to expiry, IV%, Risk-free rate, Option type (CE/PE)\
+\ls2\ilvl0
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 "Use Selected Stock LTP" button
+\f1\b0  \'97 auto-fills spot from the dropdown or watchlist data\
+\ls2\ilvl0
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Output shows:
+\f1\b0 \
+\pard\tx940\tx1440\pardeftab720\li1440\fi-1440\partightenfactor0
+\ls2\ilvl1\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Theoretical premium (Black-Scholes), Intrinsic value, Time value, Breakeven price\
+\ls2\ilvl1\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Delta, Gamma, Theta, Vega \'97 in large, color-coded display\
+\ls2\ilvl1\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Max loss, Leverage ratio, Nifty lot cost\
+\ls2\ilvl1\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Plain-English explanation of what each Greek means for your trade\
+\pard\pardeftab720\partightenfactor0
+\cf5 \strokec5 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 \uc0\u9201 \u65039  Watchlist Auto-Refresh\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls3\ilvl0
+\f1\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 When you're on the 
+\f0\b Watchlist tab
+\f1\b0 , prices auto-refresh every 
+\f0\b 30 seconds
+\f1\b0 \
+\ls3\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Timer automatically 
+\f0\b stops
+\f1\b0  when you switch to another tab (saves API calls)\
+\ls3\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Timer 
+\f0\b restarts
+\f1\b0  when you return to the Watchlist tab\
+\pard\pardeftab720\partightenfactor0
+\cf5 \strokec5 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \strokec2 How to Deploy\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Same as before \'97 upload both files to Render:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls4\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Replace 
+\f2\fs26 server.js
+\f1\fs24  and 
+\f2\fs26 public/index.html
+\f1\fs24  on your Render project\
+\ls4\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 For Telegram notifications, make sure your 
+\f2\fs26 .env
+\f1\fs24  has:\
+\pard\pardeftab720\qc\partightenfactor0
+
+\f3\fs22 \cf3 \strokec3 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs24 \cf4 \strokec4    TELEGRAM_TOKEN=your_bot_token\
+   TELEGRAM_CHAT_ID=your_chat_id\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls5\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Login \uc0\u8594  You'll see the browser notification permission popup \u8594  
+\f0\b Allow
+\f1\b0  it\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	4	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Right-click on any stock card to test the context menu\
+}
